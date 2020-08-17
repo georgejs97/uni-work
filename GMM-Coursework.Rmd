@@ -1,0 +1,70 @@
+---
+title: "MATH38161 Coursework, George Miller- 9919378"
+author: "Task A: Analysis of Geyser Data using Gaussian Mixture Models"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=6, fig.height=3.75)
+```
+## Description of Data
+
+Old Faithful is a famous geyser and tourist location in Yellowstone national park, Wyoming. This dataset describes the durations of eruptions of this geyser and the corresponding waiting time until the next eruption, both measured in minutes. There are 272 observations, the code below shows reading the data into R and constructing a basic plot. 
+
+```{r faithful fig1, fig_width=3, fig_height=1.5, echo=TRUE}
+head(faithful, 2)
+length(t(faithful))/2
+plot(faithful$eruptions, faithful$waiting, 
+     xlab = "Duration of eruption in minutes", 
+     ylab = "Waiting time until next eruption in minutes")
+```
+
+This plot shows that there are 2 broad clusters of the data. A cluster with shorter duration of eruptions and also shorter waiting time and a second cluster with longer duration and waiting time. In this second cluster, there is a group of points close together with the longest eruption duration and a group of points which are spread out and have a marginally shorter eruption duration. In total, this describes either 2 or 3 clusters for the model. I will use R analysis to determine whether the number of clusters for the Gaussian Mixture Model is either 2 or 3.
+
+## Analysis of Data using Gaussian Mixture Model
+
+After loading the required package, I constructed a Gaussian mixture model of the data using the optimum number of groups. This was found to be $K=3$ groups. I also consrtructed a similar model with $K=2$ groups for comparison. The tables below show the number of data points in each cluster for both models.
+
+```{r, echo=TRUE}
+library("mclust")
+gmm.opt <- Mclust(faithful, G=1:10, verbose=FALSE)
+gmm.opt$G
+gmm2 <- Mclust(faithful, G=2, verbose=FALSE)
+table(gmm.opt$classification)
+table(gmm2$classification)
+```
+
+\medskip
+As hypothesised there is a group with 97 observations which includes shorter eruptions and shorter waiting time until next eruption, and then a larger group of 175 observations in the case of $K=2$ which includes longer eruption times. When $K=3$, the first cluster of 97 data points remains the same. There is now a group of 40  data points and then a tight group of 135 data points which have the longest eruption duration.
+
+\newpage
+Here is a plot of the faithful data (with clusters shown) for $K=3$.
+```{r, echo=TRUE}
+plot(faithful, col=gmm.opt$classification, main="Gaussian Mixture, K=3")
+```
+
+There are hence 3 distinct clusters of the data. This is likely explained by some underlying factor which influenced eruptions of the Old Faithful geyser at different points in time such as air pressure or the weather.
+
+\medskip
+```{r, echo=TRUE}
+plot(gmm.opt, what="BIC")
+```
+
+The above plot shows the Bayesian Information Criterion $\textit{(BIC)}$ values for models with number of clusters from 1 to 10. This is a penalised likelihood measure which aims to find the optimum number of clusters in the Gaussian mixture model.
+
+This shows that $K=3$ clusters has convergence of different covariances and most minimises the BIC. $K=2$ clusters also has convergence however a slightly higher BIC value, meaning this is also a sensible hypothesis however not as efficient as $K=3$.
+
+## Discussion and Interpretation of Results
+
+```{r, echo=TRUE}
+plot(faithful, col=gmm.opt$classification, main="Gaussian Mixture, K=3")
+abline(v=3)
+abline(v=4)
+abline(h=70)
+abline(a=35, b=10, col="blue")
+```
+
+These results accurately describe and split the data into 3 groups. This is supported by BIC analysis. The Gaussian Mixture Model with $K=3$ shows that eruptions lasting between 0 and 3 minutes are grouped together, then eruptions lasting between 3 and 4 minutes are grouped and finally eruptions lasting longer than 4 minutes are grouped. We can then say that eruptions lasting up to 3 minutes cause a waiting time up to the next eruption of up to 70 minutes (with one outlier). This is the first cluster in our model. Eruptions lasting longer than 4 minutes cause a waiting time until the next eruption of longer than 70 minutes (with one outlier). This is the third cluster in our model. Hence there are boundaries at eruption time =3 and =4 minutes and to a certain extent at waiting time =70 minutes. This shows that our Gaussian mixture model with $K=3$ accurately partitions the data into 3 distinct clusters.
+
+The slope line also shows that there is a clear positive relationship between eruption duration and waiting time until the next eruption. Our Gaussian Mixture Model shows that our 3 groups of data are clustered around this trend line which further supports that there is a linear relationship between eruption and waiting time.
